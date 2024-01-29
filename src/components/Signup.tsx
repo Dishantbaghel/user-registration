@@ -1,14 +1,35 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useFormik } from "formik";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { Box, CircularProgress } from "@mui/material";
+import * as Yup from "yup";
 
-const countries = ["INDIA", "USA", "JAPAN"];
+export const signupSchema = Yup.object({
+  firstName: Yup.string()
+    .min(2)
+    .max(25)
+    .required("This field cannot be empty!"),
+  lastName: Yup.string().min(2).max(25).required("This field cannot be empty!"),
+  email: Yup.string().email().required("This field cannot be empty!"),
+  fatherName: Yup.string()
+    .min(2)
+    .max(25)
+    .required("This field cannot be empty!"),
+  motherName: Yup.string()
+    .min(2)
+    .max(25)
+    .required("This field cannot be empty!"),
+  address: Yup.string().min(2).max(25).required("This field cannot be empty!"),
+  pincode: Yup.number().integer().required("This field cannot be empty!"),
+  country: Yup.string().min(2).max(25).required("This field cannot be empty!"),
+});
 
 const Signup = () => {
   const router = useRouter();
-  const { handleChange, handleSubmit, resetForm, values } = useFormik({
+  const [isLoader, setIsLoader] = useState(false);
+  const { handleChange, handleSubmit, resetForm, values, errors } = useFormik({
     initialValues: {
       firstName: "",
       lastName: "",
@@ -19,7 +40,9 @@ const Signup = () => {
       pincode: "",
       country: "INDIA",
     },
+    validationSchema: signupSchema,
     onSubmit: async (values) => {
+      setIsLoader(true);
       try {
         const res = await axios.post("/api/signup", values);
         if (res.status === 201) {
@@ -28,6 +51,7 @@ const Signup = () => {
         }
       } catch (error) {
         console.log(error);
+        setIsLoader(false);
       }
     },
   });
@@ -35,7 +59,7 @@ const Signup = () => {
   return (
     <div className="bg-grey-lighter min-h-screen flex flex-col">
       <div className="container max-w-sm mx-auto flex-1 flex flex-col items-center justify-center px-2">
-        <div className="bg-white px-6 py-8 rounded shadow-lg text-black w-full">
+        <div className="bg-white px-6 py-6 rounded shadow-lg text-black w-full">
           <h1 className="mb-5 text-3xl text-center">Sign Up</h1>
           <form onSubmit={handleSubmit}>
             {[
@@ -46,25 +70,28 @@ const Signup = () => {
               "motherName",
               "address",
               "pincode",
-            ].map((field : string) => (
-              <input
-                key={field}
-                type={
-                  field === "email"
-                    ? "email"
-                    : field === "pincode"
-                    ? "number"
-                    : "text"
-                }
-                className="block border border-grey-light w-full p-3 rounded mb-4"
-                name={field}
-                placeholder={field}
-                onChange={handleChange}
-                value={values[field]}
-              />
+            ].map((field: string) => (
+              <div key={field}>
+                <input
+                  type={
+                    field === "email"
+                      ? "email"
+                      : field === "pincode"
+                      ? "number"
+                      : "text"
+                  }
+                  className="block border border-grey-light w-full p-3 rounded mb-4"
+                  name={field}
+                  placeholder={field}
+                  onChange={handleChange}
+                  value={values[field]}
+                />
+                {errors[field] && (
+                  <p className="text-red-500 text-sm">{errors[field]}</p>
+                )}
+              </div>
             ))}
-
-            <div className="relative border border-gray-300 text-gray-800 bg-white shadow-lg">
+            <div className="relative bg-white block border border-grey-light w-full p-3 rounded mb-4">
               <label htmlFor="country" className="sr-only">
                 Country
               </label>
@@ -75,20 +102,25 @@ const Signup = () => {
                 value={values.country}
                 onChange={handleChange}
               >
-                {countries.map((country) => (
+                {["INDIA", "USA", "JAPAN"].map((country) => (
                   <option key={country} value={country}>
                     {country}
                   </option>
                 ))}
               </select>
             </div>
-
-            <button
-              type="submit"
-              className="w-full text-center py-3 rounded bg-green-500 text-white hover:bg-green-600 focus:outline-none my-1"
-            >
-              Create Account
-            </button>
+            {isLoader == true ? (
+              <Box className="w-full flex justify-center">
+                <CircularProgress />
+              </Box>
+            ) : (
+              <button
+                type="submit"
+                className="w-full text-center py-3 rounded bg-green-500 text-white hover:bg-green-600 focus:outline-none my-1"
+              >
+                Create Account
+              </button>
+            )}
           </form>
         </div>
       </div>
