@@ -1,9 +1,7 @@
-import React from 'react'
+import UsersTable from "@/components/UsersTable";
 
-const User = () => {
-  return (
-    <div> User</div>
-  )
-}
+const Users = () => {
+  return <UsersTable />;
+};
 
-export default User
+export default Users;
